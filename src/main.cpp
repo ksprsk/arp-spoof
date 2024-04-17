@@ -92,7 +92,7 @@ void *infect(void*)
 	while(1)
 	{
 		printf("infectall\n");
-		for(int i=0;i<flowlen;i++)
+		for(uint32_t i=0;i<flowlen;i++)
 		{
 			Ip sip=Ip(Ip_vec[senderIp[i]]);
 			Ip tip=Ip(Ip_vec[targetIp[i]]);
@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
 		fprintf(stderr, "couldn't find all device(%s)\n",errbuf); 
 	}
 	while(devp) {
-		if(strcmp(dev,devp->name)==0)
+		if(std::string(dev) == std::string(devp->name))
 			break;
 		devp=devp->next;
 	}
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
 		Ip_set.insert(t);
 	}
 	flowlen=senderIp.size();
-	for(int i=0;i<flowlen;i++)
+	for(uint32_t i=0;i<flowlen;i++)
 	{
 		senderIp[i]=std::distance(Ip_set.begin(), Ip_set.find(senderIp[i]));
 		targetIp[i]=std::distance(Ip_set.begin(), Ip_set.find(targetIp[i]));
@@ -209,7 +209,7 @@ int main(int argc, char* argv[]) {
 		}
 		pthread_cancel(send_thread);
 	}
-	uint32_t maclen=Mac_vec.size();	
+	//uint32_t maclen=Mac_vec.size();	
 	std::copy(Ip_set.begin(),Ip_set.end(),std::back_inserter(Ip_vec));
 	/*
 	for(int i=0;i<maclen;i++){
@@ -246,13 +246,13 @@ int main(int argc, char* argv[]) {
 		if(type==EthHdr::Ip4)
 		{
 			uint32_t psip=ntohl(*(uint32_t*)(packet_data+0x1a));
-			uint32_t ptip=ntohl(*(uint32_t*)(packet_data+0x1e));
-			for(int i=0;i<flowlen;i++)
+			//uint32_t ptip=ntohl(*(uint32_t*)(packet_data+0x1e));
+			for(uint32_t i=0;i<flowlen;i++)
 			{
 				if(Ip_vec[senderIp[i]]==psip&&Ip_vec[targetIp[i]]!=dev_IP)
 				{
 					u_char* copy_packet_data=(u_char*)malloc(header->caplen);
-					memcpy(copy_packet_data,packet_data,header->caplen);
+					std::copy(packet_data, packet_data + header->caplen, copy_packet_data);
 					((EthHdr*)copy_packet_data)->smac_=dev_MAC;
 					((EthHdr*)copy_packet_data)->dmac_=Mac_vec[targetIp[i]];
 					pthread_mutex_lock(&mutex);
@@ -268,7 +268,7 @@ int main(int argc, char* argv[]) {
 			uint32_t psip=ntohl(((EthArpPacket*)packet_data)->arp_.sip_);
 			uint32_t ptip=ntohl(((EthArpPacket*)packet_data)->arp_.tip_);
 			Mac ptmac=((EthArpPacket*)packet_data)->arp_.tmac_;
-			for(int i=0;i<flowlen;i++)
+			for(uint32_t i=0;i<flowlen;i++)
 			{
 				bool check=false;
 				check|=Ip_vec[senderIp[i]]==psip&&Ip_vec[targetIp[i]]==ptip;
@@ -277,9 +277,9 @@ int main(int argc, char* argv[]) {
 				if(check)
 				{
 					printf("posion %d\n",i);
-					Ip sip=Ip(Ip_vec[senderIp[i]]);
-					Ip tip=Ip(Ip_vec[targetIp[i]]);
-					Mac smac=Mac_vec[senderIp[i]];
+					//Ip sip=Ip(Ip_vec[senderIp[i]]);
+					//Ip tip=Ip(Ip_vec[targetIp[i]]);
+					//Mac smac=Mac_vec[senderIp[i]];
 					pthread_t send_thread;
 					uint32_t *x=new uint32_t;
 					*x=i;
